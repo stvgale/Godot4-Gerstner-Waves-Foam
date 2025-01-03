@@ -1,0 +1,73 @@
+[gd_scene load_steps=12 format=3 uid="uid://c83tio4ulvri5"]
+
+[ext_resource type="Shader" path="res://gerstner-waves.gdshader" id="1_ap6lj"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_c1d5y"]
+size = Vector2(40, 40)
+subdivide_width = 40
+subdivide_depth = 40
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_q0jbc"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_gjvf2"]
+seamless = true
+noise = SubResource("FastNoiseLite_q0jbc")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_rje2j"]
+seed = 1
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_tdgbk"]
+seamless = true
+noise = SubResource("FastNoiseLite_rje2j")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_qhcfi"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_exltg"]
+seamless = true
+as_normal_map = true
+noise = SubResource("FastNoiseLite_qhcfi")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_6mirk"]
+seed = 1
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_jwl2n"]
+seamless = true
+as_normal_map = true
+noise = SubResource("FastNoiseLite_6mirk")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yh32n"]
+render_priority = 0
+shader = ExtResource("1_ap6lj")
+shader_parameter/wavelength1 = 20.0
+shader_parameter/amplitude1 = 1.0
+shader_parameter/steepness1 = 0.1
+shader_parameter/speed1 = 1.0
+shader_parameter/wave_direction1 = Vector2(1, 0)
+shader_parameter/wavelength2 = 8.0
+shader_parameter/amplitude2 = 0.5
+shader_parameter/steepness2 = 0.08
+shader_parameter/speed2 = 0.5
+shader_parameter/wave_direction2 = Vector2(0.4, 0.6)
+shader_parameter/displacement_scale = 2.0
+shader_parameter/displacement_height = 2.5
+shader_parameter/displacement_velocity_1 = Vector2(0.1, 0)
+shader_parameter/displacement_velocity_2 = Vector2(0.1, 0)
+shader_parameter/wave_albedo = Color(0.0623501, 0.443074, 0.554197, 1)
+shader_parameter/foam_start = 4.0
+shader_parameter/foam_end = 7.0
+shader_parameter/displacement_texture_1 = SubResource("NoiseTexture2D_gjvf2")
+shader_parameter/displacement_texture_2 = SubResource("NoiseTexture2D_tdgbk")
+shader_parameter/normal_texture_1 = SubResource("NoiseTexture2D_exltg")
+shader_parameter/normal_texture_2 = SubResource("NoiseTexture2D_jwl2n")
+
+[node name="Node3D" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.840377, -0.291145, -0.457165, 0.542002, 0.451423, 0.708838, 0, -0.843476, 0.537167, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, 11, 22)
+
+[node name="Wave" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_c1d5y")
+surface_material_override/0 = SubResource("ShaderMaterial_yh32n")
