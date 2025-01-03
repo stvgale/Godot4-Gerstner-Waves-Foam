@@ -1,23 +1,19 @@
 shader_type spatial;
 
 const float TWO_PI = 6.28318530718;
-const float GRAVITY_SQRT = 3.130495168; // sqrt(9.8)
-
-// Wave 1 Settings
+const float GRAVITY_SQRT = 3.130495168; 
 uniform float wavelength1 : hint_range(0.1, 100.0) = 10.0;
 uniform float amplitude1 : hint_range(0.0, 5.0) = 1.0;
 uniform float steepness1 : hint_range(0.0, 1.0) = 0.1;
 uniform float speed1 : hint_range(0.0, 10.0) = 1.0;
 uniform vec2 wave_direction1 = vec2(1.0, 0.0);
 
-// Wave 2 Settings
 uniform float wavelength2 : hint_range(0.1, 100.0) = 8.0;
 uniform float amplitude2 : hint_range(0.0, 5.0) = 0.5;
 uniform float steepness2 : hint_range(0.0, 1.0) = 0.08;
 uniform float speed2 : hint_range(0.0, 10.0) = 0.5;
 uniform vec2 wave_direction2 = vec2(0.8, 0.6);
 
-// Textures and Displacement
 uniform sampler2D displacement_texture_1;
 uniform sampler2D displacement_texture_2;
 uniform sampler2D normal_texture_1;
@@ -28,10 +24,10 @@ uniform vec2 displacement_velocity_1 = vec2(0.1, 0.0);
 uniform vec2 displacement_velocity_2 = vec2(0.1, 0.0);
 
 uniform vec3 wave_albedo: source_color = vec3(0.325, 0.807, 0.971);
-// Foam
+
 uniform float foam_start = 1.0;
 uniform float foam_end = 2.0;
-// Varyings
+
 varying vec2 animated_uv_1;
 varying vec2 animated_uv_2;
 varying float wave_height;
@@ -93,15 +89,12 @@ vec3 calculate_gerstner_normal(vec3 world_pos, float time) {
 void vertex() {
     vec3 world_pos = VERTEX.xyz;
 
-    // Update animated UVs for displacement textures
     animated_uv_1 = fract((UV + displacement_velocity_1 * TIME) / displacement_scale);
     animated_uv_2 = fract((UV + displacement_velocity_2 * TIME) / displacement_scale);
 
-    // Sample displacement textures
     float tex_disp_1 = texture(displacement_texture_1, animated_uv_1).r * displacement_height;
     float tex_disp_2 = texture(displacement_texture_2, animated_uv_2).r * displacement_height;
 
-    // Gerstner waves
     float k1 = TWO_PI / wavelength1;
     float w1 = GRAVITY_SQRT * k1;
     float k2 = TWO_PI / wavelength2;
@@ -110,25 +103,21 @@ void vertex() {
     vec3 wave1 = gerstner_wave(world_pos, wave_direction1, amplitude1, k1, w1, steepness1, TIME);
     vec3 wave2 = gerstner_wave(world_pos, wave_direction2, amplitude2, k2, w2, steepness2, TIME);
 
-    // Combine displacements
     float combined_displacement = tex_disp_1 + tex_disp_2 + wave1.y + wave2.y - displacement_height;
     VERTEX.y += combined_displacement;
     VERTEX.xz += wave1.xz + wave2.xz;
-	wave_height = tex_disp_1 + tex_disp_2 + wave1.y + wave2.y;
+    wave_height = tex_disp_1 + tex_disp_2 + wave1.y + wave2.y;
     vec3 gerstner_normal = calculate_gerstner_normal(world_pos, TIME);
     vec3 normal_sample_1 = (texture(normal_texture_1, animated_uv_1).rgb * 2.0 - 1.0) * displacement_height;
-	vec3 normal_sample_2 = (texture(normal_texture_2, animated_uv_2).rgb * 2.0 - 1.0) * displacement_height;
+    vec3 normal_sample_2 = (texture(normal_texture_2, animated_uv_2).rgb * 2.0 - 1.0) * displacement_height;
 
-     vec3 combined_normal = normalize(gerstner_normal + normal_sample_1 + normal_sample_2);
+    vec3 combined_normal = normalize(gerstner_normal + normal_sample_1 + normal_sample_2);
 
     vec3 normal_local = normalize((inverse(transpose(MODEL_MATRIX)) * vec4(combined_normal, 0.0)).xyz);
     NORMAL = normal_local;
 }
 void fragment() {
-    // Normalize wave height to foam range
     float foam_factor = smoothstep(foam_start, foam_end, abs(wave_height));
-
-    // Foam color blending
     vec3 foam_color = vec3(1.0);
     ALBEDO = mix(wave_albedo, foam_color, foam_factor);
 }
